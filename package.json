@@ -1,7 +1,7 @@
 {
   "name": "electron-native-plugin",
   "version": "0.1.0",
-  "description": "",
+  "description": "The WebPack plugin for bundling Electron native modules",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -10,5 +10,16 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^10.1.4"
+  },
+  "keywords": [
+    "electron",
+    "angular",
+    "native",
+    "webpack"
+  ],
+  "homepage": "https://github.com/evonox/electron-native-plugin",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/evonox/electron-native-plugin.git"
   }
 }
