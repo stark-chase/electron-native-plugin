@@ -28,9 +28,15 @@ npm install --save-dev electron-rebuild
 
 Finally we can install electron-native-plugin packages.
 ```bash
-    npm install --save-dev electron-native-plugin
-    npm install --save-dev electron-native-loader
-    npm install --save-dev electron-native-patch-loader
+npm install --save-dev electron-native-plugin
+npm install --save-dev electron-native-loader
+npm install --save-dev electron-native-patch-loader
 ```
 ## Algorithm
 This subclause describes briefly what in fact electron-native-plugin is doing.
+The plugin expects you have already your Node native module compiled by node-gyp and it is written as a dependency in your package.json file. Then it performs the following steps.
+1. When the webpack launches it parses your package.json file.
+2. Then reads your dependencies and checks which modules are native ones.
+3. Then it runs electron-rebuild command for each native module to convert it for Electron V8 machine.
+4. Write a substitution map into the file. This map is simply a key/value pair between the old NodeGyp file and the Electron native module file.
+5. This map is read then by electron-native-loader which is used to update the references in your project to the Electron binaries which are then bundled by WebPack.
