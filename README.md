@@ -4,4 +4,5 @@ It consists of three separate NPM packages:
 1. **electron-native-plugin**
 2. [**electron-native-loader**](https://github.com/evonox/electron-native-loader)
 3. [**electron-native-patch-loader**](https://github.com/evonox/electron-native-patch-loader)
+
 The role of these packages is given further in the text.
