@@ -32,8 +32,10 @@ class ElectronNativePlugin {
 
     private dependencies: any = {};
     private outputPath: string;
+    private options: any;
 
     constructor(options?: any) {
+        this.options = this.fillInDefaults(options);
     }
 
     apply(compiler: any) {
@@ -42,6 +44,22 @@ class ElectronNativePlugin {
             fs.mkdirSync(this.outputPath);
         }
         compiler.hooks.environment.tap("ElectronNativePlugin", () => this.rebuildNativeModules());
+    }
+
+    private fillInDefaults(options: any) {
+        options = options || {};
+        options.forceRebuild = options.forceRebuild || false;
+        options.outputPath = options.outputPath || "./";
+        options.userModules = options.userModules || [];
+        options.userModules.filter(item => typeof item == "string")
+            .map(item => { return  {"source": item}; });
+        options.userModules.map(item => { 
+            return {
+                source: item.source, 
+                outputPath: item.outputPath || "./"
+            };
+        });
+        return options;
     }
 
     private rebuildNativeModules() {
