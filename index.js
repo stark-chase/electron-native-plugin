@@ -23,6 +23,7 @@ function recFindByExt(base, ext, files, result) {
 var ElectronNativePlugin = /** @class */ (function () {
     function ElectronNativePlugin(options) {
         this.dependencies = {};
+        this.options = this.fillInDefaults(options);
     }
     ElectronNativePlugin.prototype.apply = function (compiler) {
         var _this = this;
@@ -31,6 +32,21 @@ var ElectronNativePlugin = /** @class */ (function () {
             fs.mkdirSync(this.outputPath);
         }
         compiler.hooks.environment.tap("ElectronNativePlugin", function () { return _this.rebuildNativeModules(); });
+    };
+    ElectronNativePlugin.prototype.fillInDefaults = function (options) {
+        options = options || {};
+        options.forceRebuild = options.forceRebuild || false;
+        options.outputPath = options.outputPath || "./";
+        options.userModules = options.userModules || [];
+        options.userModules.filter(function (item) { return typeof item == "string"; })
+            .map(function (item) { return { "source": item }; });
+        options.userModules.map(function (item) {
+            return {
+                source: item.source,
+                outputPath: item.outputPath || "./"
+            };
+        });
+        return options;
     };
     ElectronNativePlugin.prototype.rebuildNativeModules = function () {
         // read the project's package json
@@ -42,9 +58,10 @@ var ElectronNativePlugin = /** @class */ (function () {
                 nativeDeps.push(dep);
         }
         // do the Electron build itself
+        var forceRebuildFlag = this.options.forceRebuild ? "--force" : "";
         for (var _i = 0, nativeDeps_1 = nativeDeps; _i < nativeDeps_1.length; _i++) {
             var dep = nativeDeps_1[_i];
-            child_process.execSync("electron-rebuild --force --only " + dep + " --module-dir ./node_modules/" + dep, { stdio: [0, 1, 2] });
+            child_process.execSync("electron-rebuild " + forceRebuildFlag + " --only " + dep + " --module-dir ./node_modules/" + dep, { stdio: [0, 1, 2] });
             this.saveTheDependency(dep);
         }
         // copy native modules

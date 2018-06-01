@@ -74,8 +74,9 @@ class ElectronNativePlugin {
         }
 
         // do the Electron build itself
+        let forceRebuildFlag = this.options.forceRebuild ? "--force" : "";
         for(let dep of nativeDeps) {
-            child_process.execSync(`electron-rebuild --force --only ${dep} --module-dir ./node_modules/${dep}`, {stdio: [0, 1, 2]});
+            child_process.execSync(`electron-rebuild ${forceRebuildFlag} --only ${dep} --module-dir ./node_modules/${dep}`, {stdio: [0, 1, 2]});
             this.saveTheDependency(dep);
         }
 
