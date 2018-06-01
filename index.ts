@@ -1,6 +1,7 @@
 import fs = require("fs");
 import path = require("path");
 import child_process = require("child_process");
+import fsExtra = require("fs-extra");
 
 // This function is taken from the URL given below:
 // URL: https://gist.github.com/victorsollozzo/4134793
@@ -82,14 +83,19 @@ class ElectronNativePlugin {
 
         // copy native modules
         for(let gypFile in this.dependencies) {
+            // get the output path for the native module
+            let targetFilePath = path.join(this.outputPath, this.options.outputPath);
+            // if directory does not exist, then create it
+            fsExtra.ensureDirSync(targetFilePath);
+            // copy the native module
             let electronNative = this.dependencies[gypFile];
-            let targetFilePath = path.join(this.outputPath, path.basename(electronNative));
+            targetFilePath = path.join(targetFilePath, path.basename(electronNative));
             fs.copyFileSync(electronNative, targetFilePath);
         }
 
         // prepare and save the substitution map
         for(let gypFile in this.dependencies) {
-            this.dependencies[gypFile] = path.basename(this.dependencies[gypFile]);
+            this.dependencies[gypFile] = path.join(this.options.outputPath, path.basename(this.dependencies[gypFile]));
         }
         fs.writeFileSync("./ElectronNativeSubstitutionMap.json", JSON.stringify(this.dependencies));
     }

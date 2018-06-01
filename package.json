@@ -21,5 +21,8 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/evonox/electron-native-plugin.git"
+  },
+  "dependencies": {
+    "fs-extra": "^6.0.1"
   }
 }

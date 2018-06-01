@@ -2,6 +2,7 @@
 var fs = require("fs");
 var path = require("path");
 var child_process = require("child_process");
+var fsExtra = require("fs-extra");
 // This function is taken from the URL given below:
 // URL: https://gist.github.com/victorsollozzo/4134793
 function recFindByExt(base, ext, files, result) {
@@ -66,13 +67,18 @@ var ElectronNativePlugin = /** @class */ (function () {
         }
         // copy native modules
         for (var gypFile in this.dependencies) {
+            // get the output path for the native module
+            var targetFilePath = path.join(this.outputPath, this.options.outputPath);
+            // if directory does not exist, then create it
+            fsExtra.ensureDirSync(targetFilePath);
+            // copy the native module
             var electronNative = this.dependencies[gypFile];
-            var targetFilePath = path.join(this.outputPath, path.basename(electronNative));
+            targetFilePath = path.join(targetFilePath, path.basename(electronNative));
             fs.copyFileSync(electronNative, targetFilePath);
         }
         // prepare and save the substitution map
         for (var gypFile in this.dependencies) {
-            this.dependencies[gypFile] = path.basename(this.dependencies[gypFile]);
+            this.dependencies[gypFile] = path.join(this.options.outputPath, path.basename(this.dependencies[gypFile]));
         }
         fs.writeFileSync("./ElectronNativeSubstitutionMap.json", JSON.stringify(this.dependencies));
     };
