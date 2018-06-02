@@ -100,5 +100,25 @@ Finally setup the module rules as follows:
 
 Note: **DO NOT FORGET** to set the output path in the options of **electron-native-loader**. It must be **the root output path** where you place your JS bundles and assets. It is marked by the comment in the figure above.
 
+## Configuration of project native modules
+The subclause above described just the minimum configuration of the plugin. If you intend to use compilation of **project native modules**, the configuration is a little more complicated. Let's see the figure below:
+```javascript
+new ElectronNativePlugin({
+        forceRebuild: false,
+        outputPath: "./electron/native-modules/aa/bb", // a default relative output path for all native modules
+        userModules: 
+        [
+            "./cc/bb/aa",   // path to the binding.gyp file 
+            { 
+                source: "./native-module/",     // path to the binding.gyp file
+                debugBuild: false,              // we are overriding the default debugBuild settings
+                outputPath: "./greeting-module/" // this is a relative path to the path of output bundles, 
+                                                 // we override the default
+            }
+        ],
+        debugBuild: true        // yes, do debug builds
+    }),
+```
+
 ## Things get a bit tough
 Some Node native libraries are not directly compatible with Webpack and cannot be so easily bundled. It is maily due to the fact that they load dependencies in various ways which WebPack cannot detect and parse. One of the examples is sqlite3 database. As a rescue to solve this incompatibility comes electron-native-patch-loader NPM module. It works simply by text replacement of the JS source files based on its JSON configuration. Its description is found at [electron-native-patch-loader](https://github.com/evonox/electron-native-patch-loader) page.
