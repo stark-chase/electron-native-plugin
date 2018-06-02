@@ -29,7 +29,7 @@ Next it is necessary to install **WebPack** if you have not done already.
 ```bash
 npm install --save-dev webpack
 ```
-Finally we can install electron-native-plugin packages.
+Finally we can install **electron-native-plugin** packages.
 ```bash
 npm install --save-dev electron-native-plugin
 ```
