@@ -34,6 +34,19 @@ Finally we can install **electron-native-plugin** packages.
 npm install --save-dev electron-native-plugin
 ```
 The other two plugins, **electron-native-loader** and **electron-native-patch-loader**, will be installed automatically as its peer dependencies.
+## Types of native modules
+The **electron-native-plugin** supports compilation and bundling of two types of native modules:
+* **library native modules**
+* **project native modules**
+
+**Library native modules** are the modules present in your **node_modules** directory. They will be most of the time 3rd-party modules that just need to be recompiled for the Electron's V8 machine. The most common scenario is that you will just install such a module via NPM and it will get then compiled by **node-gyp** during the NPM post-install stage.
+
+**Project native modules** are the ones you write yourself and are present in the **src** directory of your project. If you want to integrate a library that takes longer to compile in C++, the recommended scenario is as follows:
+1. Prepare a project for your native library outside your Electron project and compile it as a static library.
+2. In your post-build process copy the static library with the necessary header files to your Electron project.
+3. Write in your Electron project the necessary C/C++ code for the interface with Electron, best using [the Nan library](https://github.com/nodejs/nan).
+4. Recompile and link using Webpack just the interface for Electron.
+
 ## Algorithm
 This subclause describes briefly what in fact electron-native-plugin is doing.
 The plugin expects you have already your Node native module compiled by node-gyp and it is written as a dependency in your package.json file. Then it performs the following steps.
