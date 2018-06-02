@@ -52,7 +52,7 @@ This subclause describes briefly what in fact **electron-native-plugin** is doin
 1. When the webpack launches the plugin starts by parsing your **package.json** file.
 2. Then it reads your dependencies and checks which modules are the native ones. The **devDependencies** section is obviously ignored.
 3. The next step the plugin performs is to run **electron-rebuild** command for each native module to convert it for the use with the  Electron V8 machine.
-4. Next it will write a substitution map into the file. This map is simply a key/value pair between the old NodeJS file and the Electron native module file.
+4. Next it will write a substitution map into a file. This map is simply a key/value pair between the old NodeJS file and the Electron native module file.
 5. This map is then read by **electron-native-loader** which is used to update the references in your project to the Electron binaries which are then bundled by **WebPack**.
 
 ## How to setup webpack.config.js
