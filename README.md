@@ -77,7 +77,17 @@ Finally setup the module rules as follows:
         rules: [
             {
                 test: /\.js$/,
-                use: { loader: "electron-native-patch-loader" }
+                use: 
+                [
+                    "electron-native-patch-loader",
+                    {
+                        loader: "electron-native-loader",
+                        options: {
+                            outputPath: outputPath  // Set here your defined path 
+                                                    // for the output bundles, e.g. "./dist"
+                        }
+                    }
+                ]
             },
             { 
                 test: /\.node$/, 
@@ -87,5 +97,8 @@ Finally setup the module rules as follows:
     }
 ...
 ```
+
+Note: **DO NOT FORGET** to set the output path in the options of **electron-native-loader**. It must be **the root output path** where you place your JS bundles and assets. It is marked by the comment in the figure above.
+
 ## Things get a bit tough
 Some Node native libraries are not directly compatible with Webpack and cannot be so easily bundled. It is maily due to the fact that they load dependencies in various ways which WebPack cannot detect and parse. One of the examples is sqlite3 database. As a rescue to solve this incompatibility comes electron-native-patch-loader NPM module. It works simply by text replacement of the JS source files based on its JSON configuration. Its description is found at [electron-native-patch-loader](https://github.com/evonox/electron-native-patch-loader) page.
