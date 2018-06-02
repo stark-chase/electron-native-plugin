@@ -1,6 +1,6 @@
 {
   "name": "electron-native-plugin",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The WebPack plugin for bundling Electron native modules",
   "main": "index.js",
   "scripts": {
@@ -26,5 +26,9 @@
     "bindings": "^1.3.0",
     "fs-extra": "^6.0.1",
     "rimraf": "^2.6.2"
+  },
+  "peerDependencies": {
+    "electron-native-loader": "0.2",
+    "electron-native-patch-loader": "0.2"
   }
 }
