@@ -3,28 +3,13 @@ var fs = require("fs");
 var path = require("path");
 var child_process = require("child_process");
 var fsExtra = require("fs-extra");
-// This function is taken from the URL given below:
-// URL: https://gist.github.com/victorsollozzo/4134793
-function recFindByExt(base, ext, files, result) {
-    files = files || fs.readdirSync(base);
-    result = result || [];
-    files.forEach(function (file) {
-        var newbase = path.join(base, file);
-        if (fs.statSync(newbase).isDirectory()) {
-            result = recFindByExt(newbase, ext, fs.readdirSync(newbase), result);
-        }
-        else {
-            if (file.substr(-1 * (ext.length + 1)) == '.' + ext) {
-                result.push(newbase);
-            }
-        }
-    });
-    return result;
-}
+var NativeModuleBuilder_1 = require("./NativeModuleBuilder");
+var FileSearch_1 = require("./FileSearch");
 var ElectronNativePlugin = /** @class */ (function () {
     function ElectronNativePlugin(options) {
         this.dependencies = {};
         this.options = this.fillInDefaults(options);
+        this.fileSearch = new FileSearch_1.FileSearch();
     }
     ElectronNativePlugin.prototype.apply = function (compiler) {
         var _this = this;
@@ -38,18 +23,18 @@ var ElectronNativePlugin = /** @class */ (function () {
         options = options || {};
         options.forceRebuild = options.forceRebuild || false;
         options.outputPath = options.outputPath || "./";
+        options.pythonDir = options.pythonDir || null;
         options.userModules = options.userModules || [];
-        options.userModules.filter(function (item) { return typeof item == "string"; })
-            .map(function (item) { return { "source": item }; });
-        options.userModules.map(function (item) {
+        options.userModules = options.userModules.map(function (item) {
             return {
-                source: item.source,
+                source: item.source || item,
                 outputPath: item.outputPath || "./"
             };
         });
         return options;
     };
     ElectronNativePlugin.prototype.rebuildNativeModules = function () {
+        var _this = this;
         // read the project's package json
         var dependencies = this.readProjectPackage();
         // filter out native dependencies
@@ -62,9 +47,17 @@ var ElectronNativePlugin = /** @class */ (function () {
         var forceRebuildFlag = this.options.forceRebuild ? "--force" : "";
         for (var _i = 0, nativeDeps_1 = nativeDeps; _i < nativeDeps_1.length; _i++) {
             var dep = nativeDeps_1[_i];
+            console.log("Building native module " + dep + "...");
             child_process.execSync("electron-rebuild " + forceRebuildFlag + " --only " + dep + " --module-dir ./node_modules/" + dep, { stdio: [0, 1, 2] });
             this.saveTheDependency(dep);
         }
+        // do the build of user modules
+        var moduleBuilder = new NativeModuleBuilder_1.NativeModuleBuilder(this.options, this.outputPath);
+        this.options.userModules.forEach(function (m) {
+            var moduleFiles = moduleBuilder.compile(m);
+            if (moduleFiles != null)
+                _this.dependencies[moduleFiles.nodeFile] = moduleFiles.electronFile;
+        });
         // copy native modules
         for (var gypFile in this.dependencies) {
             // get the output path for the native module
@@ -84,9 +77,9 @@ var ElectronNativePlugin = /** @class */ (function () {
     };
     ElectronNativePlugin.prototype.saveTheDependency = function (moduleName) {
         var modulePath = path.dirname(require.resolve(moduleName));
-        var gypFile = recFindByExt(modulePath, "node", undefined, undefined)[0];
+        var gypFile = this.fileSearch.search(modulePath, "node")[0];
         gypFile = path.basename(gypFile);
-        var electronFile = recFindByExt("./node_modules/" + moduleName + "/bin", "node", undefined, undefined)[0];
+        var electronFile = this.fileSearch.search("./node_modules/" + moduleName + "/bin", "node")[0];
         this.dependencies[gypFile] = electronFile;
     };
     ElectronNativePlugin.prototype.isModuleNative = function (moduleName) {
@@ -98,7 +91,7 @@ var ElectronNativePlugin = /** @class */ (function () {
             console.log("Warning: module " + moduleName + " not found.");
             return false;
         }
-        return recFindByExt(modulePath, "node", undefined, undefined).length > 0;
+        return this.fileSearch.search(modulePath, "node").length > 0;
     };
     ElectronNativePlugin.prototype.readProjectPackage = function () {
         var packageJson = fs.readFileSync("./package.json").toString();

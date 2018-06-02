@@ -2,41 +2,20 @@ import fs = require("fs");
 import path = require("path");
 import child_process = require("child_process");
 import fsExtra = require("fs-extra");
+import { NativeModuleBuilder } from "./NativeModuleBuilder"
+import { FileSearch } from "./FileSearch";
 
-// This function is taken from the URL given below:
-// URL: https://gist.github.com/victorsollozzo/4134793
-function recFindByExt(base,ext,files,result) 
-{
-    files = files || fs.readdirSync(base) 
-    result = result || [] 
-
-    files.forEach( 
-        function (file) {
-            var newbase = path.join(base,file)
-            if ( fs.statSync(newbase).isDirectory() )
-            {
-                result = recFindByExt(newbase,ext,fs.readdirSync(newbase),result)
-            }
-            else
-            {
-                if ( file.substr(-1*(ext.length+1)) == '.' + ext )
-                {
-                    result.push(newbase)
-                } 
-            }
-        }
-    )
-    return result
-}
 
 class ElectronNativePlugin {
 
     private dependencies: any = {};
     private outputPath: string;
     private options: any;
+    private fileSearch: FileSearch;
 
     constructor(options?: any) {
         this.options = this.fillInDefaults(options);
+        this.fileSearch = new FileSearch();
     }
 
     apply(compiler: any) {
@@ -51,12 +30,11 @@ class ElectronNativePlugin {
         options = options || {};
         options.forceRebuild = options.forceRebuild || false;
         options.outputPath = options.outputPath || "./";
+        options.pythonDir = options.pythonDir || null;
         options.userModules = options.userModules || [];
-        options.userModules.filter(item => typeof item == "string")
-            .map(item => { return  {"source": item}; });
-        options.userModules.map(item => { 
+        options.userModules = options.userModules.map(item => { 
             return {
-                source: item.source, 
+                source: item.source || item, 
                 outputPath: item.outputPath || "./"
             };
         });
@@ -77,9 +55,18 @@ class ElectronNativePlugin {
         // do the Electron build itself
         let forceRebuildFlag = this.options.forceRebuild ? "--force" : "";
         for(let dep of nativeDeps) {
+            console.log(`Building native module ${dep}...`);
             child_process.execSync(`electron-rebuild ${forceRebuildFlag} --only ${dep} --module-dir ./node_modules/${dep}`, {stdio: [0, 1, 2]});
             this.saveTheDependency(dep);
         }
+
+        // do the build of user modules
+        let moduleBuilder = new NativeModuleBuilder(this.options, this.outputPath);
+        this.options.userModules.forEach(m => {
+            let moduleFiles = moduleBuilder.compile(m);
+            if(moduleFiles != null)
+                this.dependencies[moduleFiles.nodeFile] = moduleFiles.electronFile;
+        });
 
         // copy native modules
         for(let gypFile in this.dependencies) {
@@ -102,9 +89,9 @@ class ElectronNativePlugin {
 
     private saveTheDependency(moduleName: string) {
         const modulePath = path.dirname(require.resolve(moduleName));
-        let gypFile = recFindByExt(modulePath, "node", undefined, undefined)[0];
+        let gypFile = this.fileSearch.search(modulePath, "node")[0];
         gypFile = path.basename(gypFile);
-        const electronFile = recFindByExt(`./node_modules/${moduleName}/bin`, "node", undefined, undefined)[0];
+        const electronFile = this.fileSearch.search(`./node_modules/${moduleName}/bin`, "node")[0];
         this.dependencies[gypFile] = electronFile;
     }
 
@@ -117,7 +104,7 @@ class ElectronNativePlugin {
             console.log(`Warning: module ${moduleName} not found.`);
             return false;
         }
-        return recFindByExt(modulePath, "node", undefined, undefined).length > 0;
+        return this.fileSearch.search(modulePath, "node").length > 0;
     }
 
     private readProjectPackage() {
