@@ -47,14 +47,14 @@ The **electron-native-plugin** supports compilation and bundling of two types of
 3. Write in your Electron project the necessary C/C++ code for the interface with Electron, best using [the Nan library](https://github.com/nodejs/nan).
 4. Recompile and link using Webpack just the interface for Electron.
 
-## Algorithm
-This subclause describes briefly what in fact electron-native-plugin is doing.
-The plugin expects you have already your Node native module compiled by node-gyp and it is written as a dependency in your package.json file. Then it performs the following steps.
-1. When the webpack launches it parses your package.json file.
-2. Then reads your dependencies and checks which modules are native ones.
-3. Then it runs electron-rebuild command for each native module to convert it for Electron V8 machine.
-4. Write a substitution map into the file. This map is simply a key/value pair between the old NodeGyp file and the Electron native module file.
-5. This map is read then by electron-native-loader which is used to update the references in your project to the Electron binaries which are then bundled by WebPack.
+## Algorithm used to compile library native modules
+This subclause describes briefly what in fact **electron-native-plugin** is doing when compiling **library native modules**.
+1. When the webpack launches the plugin starts by parsing your **package.json** file.
+2. Then it reads your dependencies and checks which modules are the native ones. The **devDependencies** section is obviously ignored.
+3. The next step the plugin performs is to run **electron-rebuild** command for each native module to convert it for the use with the  Electron V8 machine.
+4. Next it will write a substitution map into the file. This map is simply a key/value pair between the old NodeJS file and the Electron native module file.
+5. This map is then read by **electron-native-loader** which is used to update the references in your project to the Electron binaries which are then bundled by **WebPack**.
+
 ## How to setup webpack.config.js
 To setup this set of NPM modules for the use in WebPack is quite simple.
 First load and add the ElectronNativePlugin as follows:
