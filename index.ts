@@ -9,6 +9,8 @@ import { FileSearch } from "./FileSearch";
 class ElectronNativePlugin {
 
     private dependencies: any = {};
+    private moduleOutputPaths: any = {};
+
     private outputPath: string;
     private options: any;
     private fileSearch: FileSearch;
@@ -36,7 +38,7 @@ class ElectronNativePlugin {
         options.userModules = options.userModules.map(item => { 
             return {
                 source: item.source || item, 
-                outputPath: item.outputPath || "./",
+                outputPath: item.outputPath || options.outputPath,
                 debugBuild: item.debugBuild != undefined ? item.debugBuild : null
             };
         });
@@ -67,14 +69,17 @@ class ElectronNativePlugin {
         let moduleBuilder = new NativeModuleBuilder(this.options, this.outputPath);
         this.options.userModules.forEach(m => {
             let moduleFiles = moduleBuilder.compile(m);
-            if(moduleFiles != null)
+            if(moduleFiles != null) {
                 this.dependencies[moduleFiles.nodeFile] = moduleFiles.electronFile;
+                this.moduleOutputPaths[moduleFiles.nodeFile] = m.outputPath;
+            }
         });
 
         // copy native modules
         for(let gypFile in this.dependencies) {
             // get the output path for the native module
-            let targetFilePath = path.join(this.outputPath, this.options.outputPath);
+            let outputPath = this.moduleOutputPaths[gypFile] || this.options.outputPath;
+            let targetFilePath = path.join(this.outputPath, outputPath);
             // if directory does not exist, then create it
             fsExtra.ensureDirSync(targetFilePath);
             // copy the native module
@@ -83,9 +88,10 @@ class ElectronNativePlugin {
             fs.copyFileSync(electronNative, targetFilePath);
         }
 
-        // prepare and save the substitution map
+         // prepare and save the substitution map
         for(let gypFile in this.dependencies) {
-            this.dependencies[gypFile] = path.join(this.options.outputPath, path.basename(this.dependencies[gypFile]));
+            let outputPath = this.moduleOutputPaths[gypFile] || this.options.outputPath;
+            this.dependencies[gypFile] = path.join(outputPath, path.basename(this.dependencies[gypFile]));
         }
         fs.writeFileSync("./ElectronNativeSubstitutionMap.json", JSON.stringify(this.dependencies));
     }
