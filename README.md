@@ -1,5 +1,5 @@
 # electron-native-plugin
-This is a plugin for WebPack 4 and higher. It is used to bundle Node native modules for the Electron platform. It was developed mainly to provide this ability for the [electron-angular-webpack](https://github.com/lbassin/electron-angular-webpack) project. 
+This is a plugin for WebPack version 4 and higher. It is used to bundle Node native modules for the Electron platform. It was developed mainly to provide this ability for the [electron-angular-webpack](https://github.com/lbassin/electron-angular-webpack) project. 
 It consists of three separate NPM packages:
 1. **electron-native-plugin**
 2. [**electron-native-loader**](https://github.com/evonox/electron-native-loader)
@@ -9,29 +9,31 @@ The role of these packages is given further in the text.
 
 ## Installation
 I presume you have Node and NPM installed. 
-Then it is necessary to install node-gyp which is a Node native module compiler.
+Then it is necessary to install **node-gyp** which is a Node native module compiler.
 ```bash
-npm install -g node-gyp
+npm install --save-dev node-gyp
 ```
-Then it is necessary to install a C++ compiler and Python 2.7 specific to your platform. Windows users can use this package to install Python and Microsoft C++ compiler.
+For the use with this plugin the node-gyp installation **needs to be local**.
+
+Next it is necessary to install a C++ compiler and Python 2.7 specific for your platform. Windows users can use this package to install them. If you use Linux or MacOS, please consult the manual of your distribution to install GCC or CLang tool-chain.
 ```bash
 npm install --global windows-build-tools
 ```
-Then it might be to setup some enviroment variables, please consult [windows-build-tools](https://www.npmjs.com/package/windows-build-tools) page.
+It might be necessary to setup some environment variables, please consult [windows-build-tools](https://www.npmjs.com/package/windows-build-tools) page.
 
-Linux and MacOS users need to install GCC or CLang tool-chain.
-
-Next we need electron-rebuild NPM package. This can be installed by command.
+Then we need electron-rebuild NPM package. This can be installed by the following command.
 ```bash
 npm install --save-dev electron-rebuild
 ```
-
+Next it is necessary to install **WebPack** if you have not done already.
+```bash
+npm install --save-dev webpack
+```
 Finally we can install electron-native-plugin packages.
 ```bash
 npm install --save-dev electron-native-plugin
-npm install --save-dev electron-native-loader
-npm install --save-dev electron-native-patch-loader
 ```
+The other two plugins, **electron-native-loader** and **electron-native-patch-loader**, will be installed automatically as its peer dependencies.
 ## Algorithm
 This subclause describes briefly what in fact electron-native-plugin is doing.
 The plugin expects you have already your Node native module compiled by node-gyp and it is written as a dependency in your package.json file. Then it performs the following steps.
