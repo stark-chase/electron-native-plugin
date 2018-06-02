@@ -20,7 +20,7 @@ var NativeModuleBuilder = /** @class */ (function () {
         }
         // build the native module
         console.info("Building native module: " + moduleOptions.source + "...");
-        var moduleFiles = this.buildNativeModule(moduleOptions.source);
+        var moduleFiles = this.buildNativeModule(moduleOptions.source, moduleOptions.debugBuild);
         if (moduleFiles == null)
             return null;
         // copy the resulting binary
@@ -34,21 +34,25 @@ var NativeModuleBuilder = /** @class */ (function () {
         var targetFilePath = path.join(targetDir, path.basename(moduleFiles.electronFile));
         fs.copyFileSync(moduleFiles.electronFile, targetFilePath);
     };
-    NativeModuleBuilder.prototype.buildNativeModule = function (source) {
+    NativeModuleBuilder.prototype.buildNativeModule = function (source, debugBuild) {
+        // if debugBuild is unspecified in the module config, then use the global version
+        if (debugBuild == null)
+            debugBuild = this.options.debugBuild;
         // go to the native module directory
         var projectDir = process.cwd();
         this.saveCurrentPath(source);
         // clean the all binary output to make sure all changes in C/C++ code will get compiled
         this.cleanBinaryOutput();
         // check if Python path is specified
-        var pythonFlag = this.options.pythonDir != null ? "--python=" + this.options.pythonDir : "";
+        var pythonFlag = this.options.pythonPath != null ? "--python=" + this.options.pythonPath : "";
+        var debugBuildFlag = debugBuild ? "--debug" : "";
         // compile with node-gyp
         var nodeGypExecutable = path.join(projectDir, "./node_modules/.bin/node-gyp");
-        child_process.execSync(nodeGypExecutable + " configure " + pythonFlag, { stdio: [0, 1, 2] });
-        child_process.execSync(nodeGypExecutable + " build", { stdio: [0, 1, 2] });
+        child_process.execSync(nodeGypExecutable + " configure " + debugBuildFlag + " " + pythonFlag, { stdio: [0, 1, 2] });
+        child_process.execSync(nodeGypExecutable + " build " + debugBuildFlag, { stdio: [0, 1, 2] });
         // rebuild it for Electron
         var electronRebuildExecutable = path.join(projectDir, "./node_modules/.bin/electron-rebuild");
-        child_process.execSync(electronRebuildExecutable + " --module-dir ./", { stdio: [0, 1, 2] });
+        child_process.execSync(electronRebuildExecutable + " " + debugBuildFlag + " --module-dir ./", { stdio: [0, 1, 2] });
         // find Node and Electron native module files
         var electronModuleFile = this.searchForElectronNativeFile();
         if (electronModuleFile == null) {

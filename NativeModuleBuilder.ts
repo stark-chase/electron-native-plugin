@@ -5,6 +5,7 @@ import child_process = require("child_process");
 import fs_extra = require("fs-extra");
 import rimraf = require("rimraf");
 import { FileSearch } from "./FileSearch";
+import { debug } from "util";
 
 export class NativeModuleBuilder {
 
@@ -21,7 +22,7 @@ export class NativeModuleBuilder {
 
         // build the native module
         console.info(`Building native module: ${moduleOptions.source}...`);
-        let moduleFiles = this.buildNativeModule(moduleOptions.source);
+        let moduleFiles = this.buildNativeModule(moduleOptions.source, moduleOptions.debugBuild);
         if(moduleFiles == null)
             return null;
 
@@ -39,7 +40,11 @@ export class NativeModuleBuilder {
         fs.copyFileSync(moduleFiles.electronFile, targetFilePath);
     }
 
-    private buildNativeModule(source: string) {
+    private buildNativeModule(source: string, debugBuild: boolean) {
+        // if debugBuild is unspecified in the module config, then use the global version
+        if(debugBuild == null)
+            debugBuild = this.options.debugBuild;
+
         // go to the native module directory
         const projectDir = process.cwd();
         this.saveCurrentPath(source);
@@ -48,15 +53,16 @@ export class NativeModuleBuilder {
         this.cleanBinaryOutput();
 
         // check if Python path is specified
-        const pythonFlag = this.options.pythonDir != null ? `--python=${this.options.pythonDir}` : "";
+        const pythonFlag = this.options.pythonPath != null ? `--python=${this.options.pythonPath}` : "";
+        let debugBuildFlag = debugBuild ? "--debug" : "";
         // compile with node-gyp
         const nodeGypExecutable = path.join(projectDir, "./node_modules/.bin/node-gyp");
-        child_process.execSync(`${nodeGypExecutable} configure ${pythonFlag}`, {stdio: [0, 1, 2]});
-        child_process.execSync(`${nodeGypExecutable} build`, {stdio: [0, 1, 2]});
+        child_process.execSync(`${nodeGypExecutable} configure ${debugBuildFlag} ${pythonFlag}`, {stdio: [0, 1, 2]});
+        child_process.execSync(`${nodeGypExecutable} build ${debugBuildFlag}`, {stdio: [0, 1, 2]});
 
         // rebuild it for Electron
         const electronRebuildExecutable = path.join(projectDir, "./node_modules/.bin/electron-rebuild");
-        child_process.execSync(`${electronRebuildExecutable} --module-dir ./`, {stdio: [0, 1, 2]});
+        child_process.execSync(`${electronRebuildExecutable} ${debugBuildFlag} --module-dir ./`, {stdio: [0, 1, 2]});
 
         // find Node and Electron native module files
         let electronModuleFile = this.searchForElectronNativeFile();

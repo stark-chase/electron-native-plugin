@@ -30,12 +30,14 @@ class ElectronNativePlugin {
         options = options || {};
         options.forceRebuild = options.forceRebuild || false;
         options.outputPath = options.outputPath || "./";
-        options.pythonDir = options.pythonDir || null;
+        options.pythonPath = options.pythonPath || null;
+        options.debugBuild = options.debugBuild || false;
         options.userModules = options.userModules || [];
         options.userModules = options.userModules.map(item => { 
             return {
                 source: item.source || item, 
-                outputPath: item.outputPath || "./"
+                outputPath: item.outputPath || "./",
+                debugBuild: item.debugBuild != undefined ? item.debugBuild : null
             };
         });
         return options;
@@ -54,9 +56,10 @@ class ElectronNativePlugin {
 
         // do the Electron build itself
         let forceRebuildFlag = this.options.forceRebuild ? "--force" : "";
+        let debugBuildFlag = this.options.debugBuild ? "--debug" : "";
         for(let dep of nativeDeps) {
             console.log(`Building native module ${dep}...`);
-            child_process.execSync(`electron-rebuild ${forceRebuildFlag} --only ${dep} --module-dir ./node_modules/${dep}`, {stdio: [0, 1, 2]});
+            child_process.execSync(`electron-rebuild ${forceRebuildFlag} ${debugBuildFlag} --only ${dep} --module-dir ./node_modules/${dep}`, {stdio: [0, 1, 2]});
             this.saveTheDependency(dep);
         }
 
