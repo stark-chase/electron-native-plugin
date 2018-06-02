@@ -120,5 +120,18 @@ new ElectronNativePlugin({
     }),
 ```
 
+Let's describe the options one by one:
+* **forceRebuild** - when it is **true**, the **electron-rebuild** command is forced to do the rebuild in every case
+* **outputPath** - specifies the **default** relative path to the root output directory for the native modules
+* **debugBuild** - when is set to **true**, debug binaries are generated
+* **userModules** - specifies the array of **project native module** configuration
+
+The **project module** configuration can be specified either by a string or an object. When a string is used, then it is assumed it is a path to the project's **binding.gyp** file. The object notation is described below.
+
+User module or project module has the following properties:
+* **source** -  specifies the path where the **binding.gyp** file is placed
+* **debugBuild** - overwrites the default debug build settings
+* **outputPath** - overwrites the default output path settings
+
 ## Things get a bit tough
 Some Node native libraries are not directly compatible with Webpack and cannot be so easily bundled. It is maily due to the fact that they load dependencies in various ways which WebPack cannot detect and parse. One of the examples is sqlite3 database. As a rescue to solve this incompatibility comes electron-native-patch-loader NPM module. It works simply by text replacement of the JS source files based on its JSON configuration. Its description is found at [electron-native-patch-loader](https://github.com/evonox/electron-native-patch-loader) page.
