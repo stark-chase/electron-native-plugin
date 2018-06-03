@@ -23,6 +23,7 @@
     "url": "git+https://github.com/evonox/electron-native-plugin.git"
   },
   "dependencies": {
+    "@webpack-contrib/schema-utils": "^1.0.0-beta.0",
     "bindings": "^1.3.0",
     "fs-extra": "^6.0.1",
     "rimraf": "^2.6.2"

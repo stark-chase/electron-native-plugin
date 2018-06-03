@@ -5,11 +5,51 @@ var child_process = require("child_process");
 var fsExtra = require("fs-extra");
 var NativeModuleBuilder_1 = require("./NativeModuleBuilder");
 var FileSearch_1 = require("./FileSearch");
+var validate = require("@webpack-contrib/schema-utils");
+// Options schema
+var optionsSchema = {
+    type: "object",
+    properties: {
+        forceRebuild: { type: "boolean" },
+        debugBuild: { type: "boolean" },
+        outputPath: { type: "string" },
+        pythonPath: {
+            anyOf: [
+                { type: "string" },
+                { type: "null" }
+            ]
+        },
+        userModules: {
+            anyOf: [
+                { type: "string" },
+                {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            source: { type: "string" },
+                            debugBuild: {
+                                anyOf: [
+                                    { type: "boolean" },
+                                    { type: "null" }
+                                ]
+                            },
+                            outputPath: { type: "string" }
+                        },
+                        additionalProperties: false
+                    }
+                }
+            ]
+        }
+    },
+    additionalProperties: false
+};
 var ElectronNativePlugin = /** @class */ (function () {
     function ElectronNativePlugin(options) {
         this.dependencies = {};
         this.moduleOutputPaths = {};
         this.options = this.fillInDefaults(options);
+        this.validateOptions();
         this.fileSearch = new FileSearch_1.FileSearch();
     }
     ElectronNativePlugin.prototype.apply = function (compiler) {
@@ -19,6 +59,9 @@ var ElectronNativePlugin = /** @class */ (function () {
             fs.mkdirSync(this.outputPath);
         }
         compiler.hooks.environment.tap("ElectronNativePlugin", function () { return _this.rebuildNativeModules(); });
+    };
+    ElectronNativePlugin.prototype.validateOptions = function () {
+        validate({ name: "ElectronNativePlugin", schema: optionsSchema, target: this.options });
     };
     ElectronNativePlugin.prototype.fillInDefaults = function (options) {
         options = options || {};

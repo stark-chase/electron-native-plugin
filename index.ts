@@ -4,7 +4,46 @@ import child_process = require("child_process");
 import fsExtra = require("fs-extra");
 import { NativeModuleBuilder } from "./NativeModuleBuilder"
 import { FileSearch } from "./FileSearch";
+import  validate = require('@webpack-contrib/schema-utils');
 
+// Options schema
+const optionsSchema = {
+    type: "object",
+    properties: {
+        forceRebuild: { type: "boolean" },
+        debugBuild: { type: "boolean" },
+        outputPath: { type: "string" },
+        pythonPath: { 
+            anyOf: [
+                { type: "string" },
+                { type: "null" }
+            ]
+        },
+        userModules: {
+            anyOf: [
+                { type: "string" },
+                {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            source: { type: "string" },
+                            debugBuild: { 
+                                anyOf: [
+                                    { type: "boolean" },
+                                    { type: "null" }
+                                ]
+                            },
+                            outputPath: { type: "string" }
+                        },
+                        additionalProperties: false
+                    }
+                }
+            ]
+        }
+    },
+    additionalProperties: false
+}
 
 class ElectronNativePlugin {
 
@@ -17,6 +56,7 @@ class ElectronNativePlugin {
 
     constructor(options?: any) {
         this.options = this.fillInDefaults(options);
+        this.validateOptions();
         this.fileSearch = new FileSearch();
     }
 
@@ -26,6 +66,10 @@ class ElectronNativePlugin {
             fs.mkdirSync(this.outputPath);
         }
         compiler.hooks.environment.tap("ElectronNativePlugin", () => this.rebuildNativeModules());
+    }
+
+    private validateOptions() {
+        validate({name: "ElectronNativePlugin", schema: optionsSchema, target: this.options});
     }
 
     private fillInDefaults(options: any) {
