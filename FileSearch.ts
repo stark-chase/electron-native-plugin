@@ -9,6 +9,35 @@ export class FileSearch {
         return this.recFindByExt(base, ext, undefined, undefined);
     }
 
+    searchFiles(base: string, file: string, excludeDirs: string[]) {
+        return this.searchFilesRecursive(base, file, excludeDirs, undefined, undefined);
+    }
+
+    private searchFilesRecursive(base: string, searchedFile: string, excludeDirs: string[], files, result) {
+        files = files || fs.readdirSync(base) 
+        result = result || [] 
+
+        files.forEach(file =>
+             {
+                var newbase = path.join(base,file)
+                if ( fs.statSync(newbase).isDirectory() )
+                {
+                    if(excludeDirs.includes(file) == false) {
+                        result = this.searchFilesRecursive(newbase,searchedFile, excludeDirs,fs.readdirSync(newbase),result)
+                    }
+                }
+                else
+                {
+                    if (file == searchedFile)
+                    {
+                        result.push(newbase)
+                    } 
+                }
+            }
+        )
+        return result
+    }
+
     private recFindByExt(base,ext,files,result) 
     {
         files = files || fs.readdirSync(base) 

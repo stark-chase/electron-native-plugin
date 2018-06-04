@@ -10,6 +10,28 @@ var FileSearch = /** @class */ (function () {
     FileSearch.prototype.search = function (base, ext) {
         return this.recFindByExt(base, ext, undefined, undefined);
     };
+    FileSearch.prototype.searchFiles = function (base, file, excludeDirs) {
+        return this.searchFilesRecursive(base, file, excludeDirs, undefined, undefined);
+    };
+    FileSearch.prototype.searchFilesRecursive = function (base, searchedFile, excludeDirs, files, result) {
+        var _this = this;
+        files = files || fs.readdirSync(base);
+        result = result || [];
+        files.forEach(function (file) {
+            var newbase = path.join(base, file);
+            if (fs.statSync(newbase).isDirectory()) {
+                if (excludeDirs.includes(file) == false) {
+                    result = _this.searchFilesRecursive(newbase, searchedFile, excludeDirs, fs.readdirSync(newbase), result);
+                }
+            }
+            else {
+                if (file == searchedFile) {
+                    result.push(newbase);
+                }
+            }
+        });
+        return result;
+    };
     FileSearch.prototype.recFindByExt = function (base, ext, files, result) {
         var _this = this;
         files = files || fs.readdirSync(base);

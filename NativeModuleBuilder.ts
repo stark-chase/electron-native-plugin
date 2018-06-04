@@ -6,23 +6,26 @@ import fs_extra = require("fs-extra");
 import rimraf = require("rimraf");
 import { FileSearch } from "./FileSearch";
 import { debug } from "util";
+import { ModuleAutoDiscoverEngine } from "./ModuleAutoDiscoverEngine"
 
 export class NativeModuleBuilder {
 
     private savedCurrentPath: string;
+    private autoDiscover: ModuleAutoDiscoverEngine = null;
 
     constructor(private options: any, private distPath: string) {}
 
     compile(moduleOptions: any) {
         // discover the native module
-        if(! this.discoverBindingGyp(moduleOptions.source)) {
+        let moduleDir = this.discoverBindingGyp(moduleOptions.source);
+        if(moduleDir == null) {
             console.error(`Cannot find the native module: ${moduleOptions.source}`);
             return null;
         }
 
         // build the native module
         console.info(`Building native module: ${moduleOptions.source}...`);
-        let moduleFiles = this.buildNativeModule(moduleOptions.source, moduleOptions.debugBuild);
+        let moduleFiles = this.buildNativeModule(moduleDir, moduleOptions.debugBuild);
         if(moduleFiles == null)
             return null;
 
@@ -122,6 +125,19 @@ export class NativeModuleBuilder {
 
     private discoverBindingGyp(source: string) {
         const pathToCheck = path.join(source, "binding.gyp");
-        return fs.existsSync(pathToCheck);
+        if(fs.existsSync(pathToCheck))
+            return source;
+
+        if(this.autoDiscover == null)
+            this.autoDiscover = new ModuleAutoDiscoverEngine();
+        let filename = this.autoDiscover.findModuleByPackageName(source);
+        if(filename != null)
+            return path.dirname(filename);
+        
+        filename = this.autoDiscover.findModuleByDirectoryName(source);
+        if(filename != null)
+            return path.dirname(filename);
+
+        return null;
     }
 }

@@ -7,20 +7,23 @@ var child_process = require("child_process");
 var fs_extra = require("fs-extra");
 var rimraf = require("rimraf");
 var FileSearch_1 = require("./FileSearch");
+var ModuleAutoDiscoverEngine_1 = require("./ModuleAutoDiscoverEngine");
 var NativeModuleBuilder = /** @class */ (function () {
     function NativeModuleBuilder(options, distPath) {
         this.options = options;
         this.distPath = distPath;
+        this.autoDiscover = null;
     }
     NativeModuleBuilder.prototype.compile = function (moduleOptions) {
         // discover the native module
-        if (!this.discoverBindingGyp(moduleOptions.source)) {
+        var moduleDir = this.discoverBindingGyp(moduleOptions.source);
+        if (moduleDir == null) {
             console.error("Cannot find the native module: " + moduleOptions.source);
             return null;
         }
         // build the native module
         console.info("Building native module: " + moduleOptions.source + "...");
-        var moduleFiles = this.buildNativeModule(moduleOptions.source, moduleOptions.debugBuild);
+        var moduleFiles = this.buildNativeModule(moduleDir, moduleOptions.debugBuild);
         if (moduleFiles == null)
             return null;
         // copy the resulting binary
@@ -103,7 +106,17 @@ var NativeModuleBuilder = /** @class */ (function () {
     };
     NativeModuleBuilder.prototype.discoverBindingGyp = function (source) {
         var pathToCheck = path.join(source, "binding.gyp");
-        return fs.existsSync(pathToCheck);
+        if (fs.existsSync(pathToCheck))
+            return source;
+        if (this.autoDiscover == null)
+            this.autoDiscover = new ModuleAutoDiscoverEngine_1.ModuleAutoDiscoverEngine();
+        var filename = this.autoDiscover.findModuleByPackageName(source);
+        if (filename != null)
+            return path.dirname(filename);
+        filename = this.autoDiscover.findModuleByDirectoryName(source);
+        if (filename != null)
+            return path.dirname(filename);
+        return null;
     };
     return NativeModuleBuilder;
 }());
