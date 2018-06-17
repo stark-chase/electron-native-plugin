@@ -7,44 +7,7 @@ import { FileSearch } from "./FileSearch";
 import  validate = require('@webpack-contrib/schema-utils');
 
 // Options schema
-const optionsSchema = {
-    type: "object",
-    properties: {
-        forceRebuild: { type: "boolean" },
-        debugBuild: { type: "boolean" },
-        parallelBuild: { type: "boolean" },
-        outputPath: { type: "string" },
-        pythonPath: { 
-            anyOf: [
-                { type: "string" },
-                { type: "null" }
-            ]
-        },
-        userModules: {
-            anyOf: [
-                { type: "string" },
-                {
-                    type: "array",
-                    items: {
-                        type: "object",
-                        properties: {
-                            source: { type: "string" },
-                            debugBuild: { 
-                                anyOf: [
-                                    { type: "boolean" },
-                                    { type: "null" }
-                                ]
-                            },
-                            outputPath: { type: "string" }
-                        },
-                        additionalProperties: false
-                    }
-                }
-            ]
-        }
-    },
-    additionalProperties: false
-}
+const optionsSchema = require("./options.schema.json");
 
 class ElectronNativePlugin {
 
