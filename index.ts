@@ -107,7 +107,7 @@ class ElectronNativePlugin {
         let debugBuildFlag = this.options.debugBuild ? "--debug" : "";
         let parallelBuildFlag = this.options.parallelBuild ? "--parallel" : "";
         for(let dep of nativeDeps) {
-            console.log(`Building native module ${dep}...`);
+            console.log(`Rebuilding native module ${dep}...`);
             child_process.execSync(`electron-rebuild ${forceRebuildFlag} ${debugBuildFlag} ${parallelBuildFlag} --only ${dep} --module-dir ./node_modules/${dep}`, {stdio: [0, 1, 2]});
             this.saveTheDependency(dep);
         }
@@ -157,7 +157,7 @@ class ElectronNativePlugin {
             modulePath = path.dirname(require.resolve(moduleName));
         }
         catch(e) {
-            console.log(`Warning: module ${moduleName} not found.`);
+            console.log(`[WARNING]: Module ${moduleName}, configured in your package.json, not found. Please, check your dependencies.`);
             return false;
         }
         return this.fileSearch.search(modulePath, "node").length > 0;

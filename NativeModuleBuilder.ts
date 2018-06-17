@@ -20,12 +20,12 @@ export class NativeModuleBuilder {
         // discover the native module
         let moduleDir = this.discoverBindingGyp(moduleOptions.source);
         if(moduleDir == null) {
-            console.error(`Cannot find the native module: ${moduleOptions.source}`);
-            return null;
+            console.error(`[ERROR]: Cannot find a native module: ${moduleOptions.source}`);
+            process.abort();
+            return;
         }
 
         // build the native module
-        console.info(`Building native module: ${moduleOptions.source}...`);
         let moduleFiles = this.buildNativeModule(moduleDir, moduleOptions.debugBuild);
         if(moduleFiles == null)
             return null;
@@ -57,6 +57,7 @@ export class NativeModuleBuilder {
         this.cleanBinaryOutput();
 
         // check if Python path is specified
+        console.info(`Compiling native module in: ${source}...`);
         const pythonFlag = this.options.pythonPath != null ? `--python=${this.options.pythonPath}` : "";
         let debugBuildFlag = debugBuild ? "--debug" : "";
         let parallelBuildFlag = this.options.parallelBuild ? "--jobs " + os.cpus().length : "";
@@ -67,6 +68,7 @@ export class NativeModuleBuilder {
         child_process.execSync(`${nodeGypExecutable} build ${debugBuildFlag} ${parallelBuildFlag}`, {stdio: [0, 1, 2]});
 
         // rebuild it for Electron
+        console.info(`Rebuilding native module in: ${source}...`);
         parallelBuildFlag = this.options.parallelBuild ? "--parallel" : "";
         const electronRebuildExecutable = path.join(projectDir, "./node_modules/.bin/electron-rebuild");
         child_process.execSync(`${electronRebuildExecutable} ${debugBuildFlag} ${parallelBuildFlag} --module-dir ./`, {stdio: [0, 1, 2]});
@@ -97,7 +99,8 @@ export class NativeModuleBuilder {
         let fileSearch = new FileSearch();
         let files = fileSearch.search("./bin", "node");
         if(files.length == 0) {
-            console.log("Error: Cannot find the Electron native module file.");
+            console.log("[ERROR]: Cannot find the Electron native module file.");
+            process.abort();
             return null;
         }
         return files[0]
@@ -107,7 +110,8 @@ export class NativeModuleBuilder {
         let fileSearch = new FileSearch();
         let files = fileSearch.search("./build", "node");
         if(files.length == 0) {
-            console.log("Error: Cannot find the NodeJS native module file.");
+            console.log("[ERROR]: Cannot find the NodeJS native module file.");
+            process.abort();
             return null;
         }
         return files[0]

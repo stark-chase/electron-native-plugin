@@ -19,11 +19,11 @@ var NativeModuleBuilder = /** @class */ (function () {
         // discover the native module
         var moduleDir = this.discoverBindingGyp(moduleOptions.source);
         if (moduleDir == null) {
-            console.error("Cannot find the native module: " + moduleOptions.source);
-            return null;
+            console.error("[ERROR]: Cannot find a native module: " + moduleOptions.source);
+            process.abort();
+            return;
         }
         // build the native module
-        console.info("Building native module: " + moduleOptions.source + "...");
         var moduleFiles = this.buildNativeModule(moduleDir, moduleOptions.debugBuild);
         if (moduleFiles == null)
             return null;
@@ -48,15 +48,16 @@ var NativeModuleBuilder = /** @class */ (function () {
         // clean the all binary output to make sure all changes in C/C++ code will get compiled
         this.cleanBinaryOutput();
         // check if Python path is specified
+        console.info("Compiling native module in: " + source + "...");
         var pythonFlag = this.options.pythonPath != null ? "--python=" + this.options.pythonPath : "";
         var debugBuildFlag = debugBuild ? "--debug" : "";
         var parallelBuildFlag = this.options.parallelBuild ? "--jobs " + os.cpus().length : "";
-        console.dir("Number of processor cores: " + os.cpus().length);
         // compile with node-gyp
         var nodeGypExecutable = path.join(projectDir, "./node_modules/.bin/node-gyp");
         child_process.execSync(nodeGypExecutable + " configure " + debugBuildFlag + " " + pythonFlag + " " + parallelBuildFlag, { stdio: [0, 1, 2] });
         child_process.execSync(nodeGypExecutable + " build " + debugBuildFlag + " " + parallelBuildFlag, { stdio: [0, 1, 2] });
         // rebuild it for Electron
+        console.info("Rebuilding native module in: " + source + "...");
         parallelBuildFlag = this.options.parallelBuild ? "--parallel" : "";
         var electronRebuildExecutable = path.join(projectDir, "./node_modules/.bin/electron-rebuild");
         child_process.execSync(electronRebuildExecutable + " " + debugBuildFlag + " " + parallelBuildFlag + " --module-dir ./", { stdio: [0, 1, 2] });
@@ -83,7 +84,8 @@ var NativeModuleBuilder = /** @class */ (function () {
         var fileSearch = new FileSearch_1.FileSearch();
         var files = fileSearch.search("./bin", "node");
         if (files.length == 0) {
-            console.log("Error: Cannot find the Electron native module file.");
+            console.log("[ERROR]: Cannot find the Electron native module file.");
+            process.abort();
             return null;
         }
         return files[0];
@@ -92,7 +94,8 @@ var NativeModuleBuilder = /** @class */ (function () {
         var fileSearch = new FileSearch_1.FileSearch();
         var files = fileSearch.search("./build", "node");
         if (files.length == 0) {
-            console.log("Error: Cannot find the NodeJS native module file.");
+            console.log("[ERROR]: Cannot find the NodeJS native module file.");
+            process.abort();
             return null;
         }
         return files[0];
