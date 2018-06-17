@@ -7,6 +7,7 @@ import rimraf = require("rimraf");
 import { FileSearch } from "./FileSearch";
 import { debug } from "util";
 import { ModuleAutoDiscoverEngine } from "./ModuleAutoDiscoverEngine"
+import os = require("os");
 
 export class NativeModuleBuilder {
 
@@ -58,14 +59,17 @@ export class NativeModuleBuilder {
         // check if Python path is specified
         const pythonFlag = this.options.pythonPath != null ? `--python=${this.options.pythonPath}` : "";
         let debugBuildFlag = debugBuild ? "--debug" : "";
+        let parallelBuildFlag = this.options.parallelBuild ? "--jobs " + os.cpus().length : "";
+
         // compile with node-gyp
         const nodeGypExecutable = path.join(projectDir, "./node_modules/.bin/node-gyp");
-        child_process.execSync(`${nodeGypExecutable} configure ${debugBuildFlag} ${pythonFlag}`, {stdio: [0, 1, 2]});
-        child_process.execSync(`${nodeGypExecutable} build ${debugBuildFlag}`, {stdio: [0, 1, 2]});
+        child_process.execSync(`${nodeGypExecutable} configure ${debugBuildFlag} ${pythonFlag} ${parallelBuildFlag}`, {stdio: [0, 1, 2]});
+        child_process.execSync(`${nodeGypExecutable} build ${debugBuildFlag} ${parallelBuildFlag}`, {stdio: [0, 1, 2]});
 
         // rebuild it for Electron
+        parallelBuildFlag = this.options.parallelBuild ? "--parallel" : "";
         const electronRebuildExecutable = path.join(projectDir, "./node_modules/.bin/electron-rebuild");
-        child_process.execSync(`${electronRebuildExecutable} ${debugBuildFlag} --module-dir ./`, {stdio: [0, 1, 2]});
+        child_process.execSync(`${electronRebuildExecutable} ${debugBuildFlag} ${parallelBuildFlag} --module-dir ./`, {stdio: [0, 1, 2]});
 
         // find Node and Electron native module files
         let electronModuleFile = this.searchForElectronNativeFile();

@@ -8,6 +8,7 @@ var fs_extra = require("fs-extra");
 var rimraf = require("rimraf");
 var FileSearch_1 = require("./FileSearch");
 var ModuleAutoDiscoverEngine_1 = require("./ModuleAutoDiscoverEngine");
+var os = require("os");
 var NativeModuleBuilder = /** @class */ (function () {
     function NativeModuleBuilder(options, distPath) {
         this.options = options;
@@ -49,13 +50,16 @@ var NativeModuleBuilder = /** @class */ (function () {
         // check if Python path is specified
         var pythonFlag = this.options.pythonPath != null ? "--python=" + this.options.pythonPath : "";
         var debugBuildFlag = debugBuild ? "--debug" : "";
+        var parallelBuildFlag = this.options.parallelBuild ? "--jobs " + os.cpus().length : "";
+        console.dir("Number of processor cores: " + os.cpus().length);
         // compile with node-gyp
         var nodeGypExecutable = path.join(projectDir, "./node_modules/.bin/node-gyp");
-        child_process.execSync(nodeGypExecutable + " configure " + debugBuildFlag + " " + pythonFlag, { stdio: [0, 1, 2] });
-        child_process.execSync(nodeGypExecutable + " build " + debugBuildFlag, { stdio: [0, 1, 2] });
+        child_process.execSync(nodeGypExecutable + " configure " + debugBuildFlag + " " + pythonFlag + " " + parallelBuildFlag, { stdio: [0, 1, 2] });
+        child_process.execSync(nodeGypExecutable + " build " + debugBuildFlag + " " + parallelBuildFlag, { stdio: [0, 1, 2] });
         // rebuild it for Electron
+        parallelBuildFlag = this.options.parallelBuild ? "--parallel" : "";
         var electronRebuildExecutable = path.join(projectDir, "./node_modules/.bin/electron-rebuild");
-        child_process.execSync(electronRebuildExecutable + " " + debugBuildFlag + " --module-dir ./", { stdio: [0, 1, 2] });
+        child_process.execSync(electronRebuildExecutable + " " + debugBuildFlag + " " + parallelBuildFlag + " --module-dir ./", { stdio: [0, 1, 2] });
         // find Node and Electron native module files
         var electronModuleFile = this.searchForElectronNativeFile();
         if (electronModuleFile == null) {

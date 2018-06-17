@@ -12,6 +12,7 @@ var optionsSchema = {
     properties: {
         forceRebuild: { type: "boolean" },
         debugBuild: { type: "boolean" },
+        parallelBuild: { type: "boolean" },
         outputPath: { type: "string" },
         pythonPath: {
             anyOf: [
@@ -69,6 +70,7 @@ var ElectronNativePlugin = /** @class */ (function () {
         options.outputPath = options.outputPath || "./";
         options.pythonPath = options.pythonPath || null;
         options.debugBuild = options.debugBuild || false;
+        options.parallelBuild = options.parallelBuild || false;
         options.userModules = options.userModules || [];
         options.userModules = options.userModules.map(function (item) {
             return {
@@ -92,10 +94,11 @@ var ElectronNativePlugin = /** @class */ (function () {
         // do the Electron build itself
         var forceRebuildFlag = this.options.forceRebuild ? "--force" : "";
         var debugBuildFlag = this.options.debugBuild ? "--debug" : "";
+        var parallelBuildFlag = this.options.parallelBuild ? "--parallel" : "";
         for (var _i = 0, nativeDeps_1 = nativeDeps; _i < nativeDeps_1.length; _i++) {
             var dep = nativeDeps_1[_i];
             console.log("Building native module " + dep + "...");
-            child_process.execSync("electron-rebuild " + forceRebuildFlag + " " + debugBuildFlag + " --only " + dep + " --module-dir ./node_modules/" + dep, { stdio: [0, 1, 2] });
+            child_process.execSync("electron-rebuild " + forceRebuildFlag + " " + debugBuildFlag + " " + parallelBuildFlag + " --only " + dep + " --module-dir ./node_modules/" + dep, { stdio: [0, 1, 2] });
             this.saveTheDependency(dep);
         }
         // do the build of user modules
