@@ -47,6 +47,10 @@ var NativeModuleBuilder = /** @class */ (function () {
         this.saveCurrentPath(source);
         // clean the all binary output to make sure all changes in C/C++ code will get compiled
         this.cleanBinaryOutput();
+        this.checkPackageFile();
+        // check if node_modules subdirectory does exist
+        var nodeModuleDir = path.join(projectDir, source, "node_modules");
+        fs_extra.ensureDirSync(nodeModuleDir);
         // check if Python path is specified
         console.info("Compiling native module in: " + source + "...");
         var pythonFlag = this.options.pythonPath != null ? "--python=" + this.options.pythonPath : "";
@@ -79,6 +83,18 @@ var NativeModuleBuilder = /** @class */ (function () {
             nodeFile: nodeModuleFile,
             electronFile: electronModuleFile
         };
+    };
+    NativeModuleBuilder.prototype.checkPackageFile = function () {
+        if (fs.existsSync("./package.json"))
+            return;
+        // if the NPM package.json file does not exist, then create the default one
+        var config = {};
+        var bindingConfig = JSON.parse(fs.readFileSync("./binding.gyp").toString());
+        config.name = bindingConfig.targets[0].target_name || "default-name";
+        config.version = "1.0.0";
+        config.gypFile = true;
+        config.main = "index.js";
+        fs.writeFileSync("./package.json", JSON.stringify(config, null, 4));
     };
     NativeModuleBuilder.prototype.searchForElectronNativeFile = function () {
         var fileSearch = new FileSearch_1.FileSearch();

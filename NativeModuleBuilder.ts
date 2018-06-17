@@ -55,6 +55,11 @@ export class NativeModuleBuilder {
 
         // clean the all binary output to make sure all changes in C/C++ code will get compiled
         this.cleanBinaryOutput();
+        this.checkPackageFile();
+
+        // check if node_modules subdirectory does exist
+        const nodeModuleDir = path.join(projectDir, source, "node_modules");
+        fs_extra.ensureDirSync(nodeModuleDir);
 
         // check if Python path is specified
         console.info(`Compiling native module in: ${source}...`);
@@ -93,6 +98,19 @@ export class NativeModuleBuilder {
             nodeFile: nodeModuleFile,
             electronFile: electronModuleFile
         };
+    }
+
+    private checkPackageFile() {
+        if(fs.existsSync("./package.json"))
+            return;
+        // if the NPM package.json file does not exist, then create the default one
+        let config: any = {};
+        const bindingConfig: any = JSON.parse(fs.readFileSync("./binding.gyp").toString());
+        config.name = bindingConfig.targets[0].target_name || "default-name"
+        config.version = "1.0.0";
+        config.gypFile = true;
+        config.main = "index.js";
+        fs.writeFileSync("./package.json", JSON.stringify(config, null, 4));
     }
 
     private searchForElectronNativeFile() {
