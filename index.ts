@@ -6,7 +6,6 @@ import { NativeModuleBuilder } from "./NativeModuleBuilder"
 import { FileSearch } from "./FileSearch";
 import  validate = require('@webpack-contrib/schema-utils');
 
-// Options schema
 const optionsSchema = require("./options.schema.json");
 
 class ElectronNativePlugin {
