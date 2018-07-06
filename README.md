@@ -32,6 +32,8 @@ npm install --save-dev webpack
 Finally we can install **electron-native-plugin** packages.
 ```bash
 npm install --save-dev electron-native-plugin
+npm install --save-dev electron-native-loader
+npm install --save-dev electron-native-patch-loader
 ```
 The other two plugins, **electron-native-loader** and **electron-native-patch-loader**, will be installed automatically as its peer dependencies.
 ## Types of native modules
