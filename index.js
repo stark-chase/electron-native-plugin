@@ -6,7 +6,6 @@ var fsExtra = require("fs-extra");
 var NativeModuleBuilder_1 = require("./NativeModuleBuilder");
 var FileSearch_1 = require("./FileSearch");
 var validate = require("@webpack-contrib/schema-utils");
-// Options schema
 var optionsSchema = require("./options.schema.json");
 var ElectronNativePlugin = /** @class */ (function () {
     function ElectronNativePlugin(options) {
