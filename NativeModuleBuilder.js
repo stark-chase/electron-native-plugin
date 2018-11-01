@@ -1,5 +1,5 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 var path = require("path");
 var fs = require("fs");
 var process = require("process");
@@ -37,6 +37,7 @@ var NativeModuleBuilder = /** @class */ (function () {
         fs_extra.ensureDirSync(targetDir);
         var targetFilePath = path.join(targetDir, path.basename(moduleFiles.electronFile));
         fs.copyFileSync(moduleFiles.electronFile, targetFilePath);
+        console.log("copying node file from " + moduleFiles.electronFile + " to " + targetFilePath);
     };
     NativeModuleBuilder.prototype.buildNativeModule = function (source, debugBuild) {
         // if debugBuild is unspecified in the module config, then use the global version
@@ -144,4 +145,3 @@ var NativeModuleBuilder = /** @class */ (function () {
     return NativeModuleBuilder;
 }());
 exports.NativeModuleBuilder = NativeModuleBuilder;
-//# sourceMappingURL=NativeModuleBuilder.js.map

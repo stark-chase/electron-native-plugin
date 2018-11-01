@@ -81,7 +81,7 @@ var ElectronNativePlugin = /** @class */ (function () {
             fsExtra.ensureDirSync(targetFilePath);
             // copy the native module
             var electronNative = this.dependencies[gypFile];
-            targetFilePath = path.join(targetFilePath, path.basename(electronNative));
+            targetFilePath = path.join(targetFilePath, gypFile);
             fs.copyFileSync(electronNative, targetFilePath);
         }
         // prepare and save the substitution map
@@ -92,7 +92,7 @@ var ElectronNativePlugin = /** @class */ (function () {
         fs.writeFileSync("./ElectronNativeSubstitutionMap.json", JSON.stringify(this.dependencies));
     };
     ElectronNativePlugin.prototype.saveTheDependency = function (moduleName) {
-        var modulePath = path.dirname(require.resolve(moduleName));
+        var modulePath = path.resolve(path.dirname(require.resolve(moduleName)), "build/");
         var gypFile = this.fileSearch.search(modulePath, "node")[0];
         gypFile = path.basename(gypFile);
         var electronFile = this.fileSearch.search("./node_modules/" + moduleName + "/bin", "node")[0];
@@ -117,4 +117,3 @@ var ElectronNativePlugin = /** @class */ (function () {
     return ElectronNativePlugin;
 }());
 module.exports = ElectronNativePlugin;
-//# sourceMappingURL=index.js.map

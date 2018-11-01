@@ -93,7 +93,7 @@ class ElectronNativePlugin {
             fsExtra.ensureDirSync(targetFilePath);
             // copy the native module
             let electronNative = this.dependencies[gypFile];
-            targetFilePath = path.join(targetFilePath, path.basename(electronNative));
+            targetFilePath = path.join(targetFilePath, gypFile);
             fs.copyFileSync(electronNative, targetFilePath);
         }
 
@@ -106,7 +106,7 @@ class ElectronNativePlugin {
     }
 
     private saveTheDependency(moduleName: string) {
-        const modulePath = path.dirname(require.resolve(moduleName));
+        const modulePath = path.resolve(path.dirname(require.resolve(moduleName)), "build/");
         let gypFile = this.fileSearch.search(modulePath, "node")[0];
         gypFile = path.basename(gypFile);
         const electronFile = this.fileSearch.search(`./node_modules/${moduleName}/bin`, "node")[0];
