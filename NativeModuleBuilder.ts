@@ -42,7 +42,6 @@ export class NativeModuleBuilder {
         fs_extra.ensureDirSync(targetDir);
         const targetFilePath = path.join(targetDir, path.basename(moduleFiles.electronFile));
         fs.copyFileSync(moduleFiles.electronFile, targetFilePath);
-        console.log("copying node file from " + moduleFiles.electronFile + " to " + targetFilePath);
     }
 
     private buildNativeModule(source: string, debugBuild: boolean) {

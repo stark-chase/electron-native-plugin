@@ -1,5 +1,5 @@
 "use strict";
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 var fs = require("fs");
 var path = require("path");
 var FileSearch_1 = require("./FileSearch");
@@ -33,3 +33,4 @@ var ModuleAutoDiscoverEngine = /** @class */ (function () {
     return ModuleAutoDiscoverEngine;
 }());
 exports.ModuleAutoDiscoverEngine = ModuleAutoDiscoverEngine;
+//# sourceMappingURL=ModuleAutoDiscoverEngine.js.map
