@@ -128,6 +128,12 @@ class ElectronNativePlugin {
     private readProjectPackage() {
         let packageJson = fs.readFileSync("./package.json").toString();
         let dependencies = JSON.parse(packageJson).dependencies;
+
+        if (this.options.optionalDependencies) {
+            let optionalDependencies = JSON.parse(packageJson).optionalDependencies;
+            dependencies = {...dependencies, ...optionalDependencies}
+        }
+
         return dependencies;
     }
 }
