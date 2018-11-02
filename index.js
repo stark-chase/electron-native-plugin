@@ -58,20 +58,27 @@ var ElectronNativePlugin = /** @class */ (function () {
         var _this = this;
         // read the project's package json
         var dependencies = this.readProjectPackage();
+        // filter out not installed optional dependencies
+        var filteredDeps = [];
+        for (var dep in dependencies) {
+            if (!this.isModuleOptionalAndNotInstalled(dep))
+                filteredDeps.push(dep);
+        }
         // filter out native dependencies
         var nativeDeps = [];
-        for (var dep in dependencies) {
-            if (this.isModuleNative(dep))
-                nativeDeps.push(dep);
+        for (var dep in filteredDeps) {
+            var dependency = filteredDeps[dep];
+            if (this.isModuleNative(dependency))
+                nativeDeps.push(dependency);
         }
         // do the Electron build itself
-        var forceRebuildFlag = this.options.forceRebuild ? "--force" : "";
-        var debugBuildFlag = this.options.debugBuild ? "--debug" : "";
-        var parallelBuildFlag = this.options.parallelBuild ? "--parallel" : "";
+        var forceRebuildFlag = this.options.forceRebuild ? "-f" : "";
+        var debugBuildFlag = this.options.debugBuild ? "-b" : "";
+        var parallelBuildFlag = this.options.parallelBuild ? "-p" : "";
         for (var _i = 0, nativeDeps_1 = nativeDeps; _i < nativeDeps_1.length; _i++) {
             var dep = nativeDeps_1[_i];
             console.log("Rebuilding native module " + dep + "...");
-            child_process.execSync("electron-rebuild " + forceRebuildFlag + " " + debugBuildFlag + " " + parallelBuildFlag + " --only " + dep + " --module-dir ./node_modules/" + dep, { stdio: [0, 1, 2] });
+            child_process.execSync("electron-rebuild " + forceRebuildFlag + " " + debugBuildFlag + " " + parallelBuildFlag + " -o " + dep, { stdio: [0, 1, 2] });
             this.saveTheDependency(dep);
         }
         // do the build of user modules
@@ -108,6 +115,21 @@ var ElectronNativePlugin = /** @class */ (function () {
         gypFile = path.basename(gypFile);
         var electronFile = this.fileSearch.search("./node_modules/" + moduleName + "/bin", "node")[0];
         this.dependencies[gypFile] = electronFile;
+    };
+    ElectronNativePlugin.prototype.isModuleOptionalAndNotInstalled = function (moduleName) {
+        var modulePath = "";
+        var packageJson = fs.readFileSync("./package.json").toString();
+        var optionalDependencies = JSON.parse(packageJson).optionalDependencies;
+        if (!(moduleName in optionalDependencies))
+            return false;
+        try {
+            modulePath = path.dirname(require.resolve(moduleName));
+        }
+        catch (e) {
+            console.log("[WARNING]: Module " + moduleName + ", configured in your package.json as optional, not found. Skipped.");
+            return true;
+        }
+        return false;
     };
     ElectronNativePlugin.prototype.isModuleNative = function (moduleName) {
         var modulePath = "";
