@@ -127,6 +127,7 @@ Let's describe the options one by one:
 * **outputPath** - specifies the **default** relative path to the root output directory for the native modules
 * **debugBuild** - when is set to **true**, debug binaries are generated
 * **userModules** - specifies the array of **project native module** configuration
+* **optionalDependencies** - when it is **true**, all native node modules in the optionalDependencies section are rebuilt, too.
 
 The **project module** configuration can be specified either by a string or an object. When a string is used, then it is assumed it is a path to the project's **binding.gyp** file. The object notation is described below.
 

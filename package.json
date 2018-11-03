@@ -1,6 +1,6 @@
 {
   "name": "electron-native-plugin",
-  "version": "0.3",
+  "version": "0.3.1",
   "description": "The WebPack plugin for bundling Electron native modules",
   "main": "index.js",
   "scripts": {
